@@ -1,94 +1,45 @@
 package info.plugmania.MuteThaBot;
 
-import java.util.Random;
-
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.plugin.java.JavaPlugin;
-
 public class MuteThaBot extends JavaPlugin {
-
-	Authorisation auth = new Authorisation(this);
 	
-	public void onDisable (){
-		getLogger().info("MuteThaBot is now disabled.");
-	}
+	HashMap<String,Auth> auths = new HashMap<String,Auth>;
 	
 	public void onEnable(){
-		getServer().getPluginManager().registerEvents(new PluginListener(), this);
-		getLogger().info("MuteThaBot is enabled.");
+		getServer().getPluginManager().registerEvents(this, this);
 	}
 	
-	public class PluginListener implements Listener {
-	    @EventHandler
-	    public void onPlayerLogin(PlayerJoinEvent event) {
-	    	auth.player = event.getPlayer();
-	    	auth.name = event.getPlayer().getName();
-	    	auth.rndChar = auth.genRandChar();
-	    	auth.startAuth();	    
-	    }
-	    
-	    @EventHandler
-	    public void onPlayerChat(PlayerChatEvent event) {
-	    	if(auth.isAuth!=true) {
-	    		if(auth.rndChar==event.getMessage().toCharArray()[0]) {
-	    			auth.isAuth = true;
-	    			auth.playerAccess();
-	    		}
-	    		else auth.playerQuit();
-	    		event.setCancelled(true);
+	@EventHandler
+	public void onPlayerLogin(PlayerJoinEvent event) {
+		if(!auths.contains(event.getPlayer().getName()){
+			auths.put(event.getPlayer().getName(),new Auth());
+		}
+		if(!auths.get(event.get.Player().getName()).isAuth){
+			player.sendMessage(ChatColor.GOLD + "[MuteThaBot] Please type '" + auths.get(event.getPlayer().getName()).rnd + "' now to authenticate yourself");
+		}
+	}
+
+	@EventHandler
+	public void onPlayerChat(PlayerChatEvent event){
+		if(auths.contains(event.getPlayer().getName())) {
+			if(!auths.get(event.get.Player().getName()).isAuth){
+				if(event.getMessage() equals auths.get(event.getPlayer().getName()).rnd){
+					auths.get(event.getPlayer().getName()).isAuth=true;
+				}else{
+					player.sendMessage(ChatColor.GOLD + "[MuteThaBot] Please type '" + auths.get(event.getPlayer().getName()).rnd + "' now to authenticate yourself");	
+				}
+				event.setCanceled=true;
+			}
 	    	}
-	    }
-	    
-	    @EventHandler
-	    public void onPlayerMove(PlayerMoveEvent event) {
-	    	if(auth.isAuth!=true) {
-	    		Location loc = event.getFrom();
-	    		event.setTo(loc);
-	    	}	
-	    }
 	}
 	
-	public MuteThaBot() {
-		
-	}
-	
-	class Authorisation {
+	class Auth{
 		boolean isAuth;
-		String name;
-		Player player;
-		char rndChar;
-	
-		MuteThaBot plugin;
-		public Authorisation(MuteThaBot instance){
-		plugin=instance;
-		}
-		
-		char genRandChar() {
-	    	Random r = new Random();
-	    	char c = (char)(r.nextInt(26) + 'a');
-	    	return c;
-		}
-		
-		void startAuth(){
-			player.sendMessage(ChatColor.GOLD + "[MuteThaBot] Please type '" + rndChar + "' now to authenticate yourself");
-		}
-		
-		void playerAccess() {
-			player.sendMessage(ChatColor.GOLD + "[MuteThaBot] Thank you!");
-		}
-		
-		void playerQuit(){
-			getLogger().info(name + " failed authentication");
-			player.kickPlayer("Authentication failed, Goodbye!");
-		}
+		int rnd;
+	    	public Auth(){
+	    		this.isAuth=false;
+	    		Random r = new Random();
+	    		this.rnd = r.nextInt(9);
+	    	}
 	}
 	
 	
